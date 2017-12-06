@@ -24,16 +24,13 @@ class TableViewController: UITableViewController {
     {
         super.viewDidLoad()
         
-        //self.view.backgroundColor = UIColor.red
-        
-        let barHeight: CGFloat = UIApplication.shared.statusBarFrame.size.height
         let displayWidth: CGFloat = self.view.frame.width
         let displayHeight: CGFloat = self.view.frame.height
         
         //table instance
         self.myTableView = UITableView(frame: CGRect(x: 0, y: 80, width: displayWidth, height: displayHeight - 80))
         self.view.addSubview(myTableView)
-        self.myTableView.register(CustomTableCell.self, forCellReuseIdentifier: cellId)
+        
         
         self.myTableView.rowHeight = UITableViewAutomaticDimension
         self.myTableView.estimatedRowHeight = UITableViewAutomaticDimension
@@ -41,13 +38,7 @@ class TableViewController: UITableViewController {
         //navogation instance
         myNavigationbar  = UINavigationBar(frame: CGRect(x: 0, y: 0, width: displayWidth, height: 80))
         self.view.addSubview(myNavigationbar);
-        //let navItem = UINavigationItem(title: "About Canada");
-        //myNavigationbar.setItems([navItem], animated: false);
-        
-        
-        
-        
-        
+    
         //json parsing call
         self.parseJSON()
         
@@ -56,12 +47,6 @@ class TableViewController: UITableViewController {
         // Do any additional setup after loading the view.
     }
     
-    
-    
-    //Dynamic Row height
-    // override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-    //  return UITableViewAutomaticDimension
-    //}
     
     //Estinamting row height
     override func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -80,11 +65,7 @@ class TableViewController: UITableViewController {
         
         
     }
-//    override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-//
-//        return 0
-//    }
-//
+
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
         return self.myDataArray.count
@@ -106,7 +87,10 @@ class TableViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let cell = self.myTableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath) as! CustomTableCell
+        let CellIdentifier = "cell\(indexPath.row)"
+        self.myTableView.register(CustomTableCell.self, forCellReuseIdentifier: CellIdentifier)
+        
+        let cell = self.myTableView.dequeueReusableCell(withIdentifier: CellIdentifier, for: indexPath) as! CustomTableCell
         
         let SingleData = self.myDataArray.object(at: indexPath.row) as! NSDictionary
         
