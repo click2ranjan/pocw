@@ -16,7 +16,10 @@ class TableViewController: UITableViewController {
     private var myNavigationbar:UINavigationBar!
     //Mutable array for Row data
     private var myDataArray:NSMutableArray!
-    
+    //Dummy Data since json data is not working
+    private let myTitle: NSArray = ["Beavers","Flag","Transportation"]
+    private let myDescription: NSArray = ["Beavers are second only to humans in their ability to manipulate and change their environment. They can measure up to 1.3 metres long. A group of beavers is called a colony","","It is a well known fact that polar bears are the main mode of transportation in Canada. They consume far less gas and have the added benefit of being difficult to steal."]
+    private let myImageURL: NSArray = ["http://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/American_Beaver.jpg/220px-American_Beaver.jpg","http://images.findicons.com/files/icons/662/world_flag/128/flag_of_canada.png","http://1.bp.blogspot.com/_VZVOmYVm68Q/SMkzZzkGXKI/AAAAAAAAADQ/U89miaCkcyo/s400/the_golden_compass_still.jpg"]
     private let cellId = "cellId"
     
     override func viewDidLoad()
@@ -31,7 +34,6 @@ class TableViewController: UITableViewController {
         
         //table instance
         self.myTableView = UITableView(frame: CGRect(x: 0, y: 80, width: displayWidth, height: displayHeight - 80))
-        self.myTableView.register(UITableViewCell.self, forCellReuseIdentifier: "MyCell")
         self.myTableView.dataSource = self
         self.myTableView.delegate = self
         self.view.addSubview(myTableView)
@@ -45,8 +47,10 @@ class TableViewController: UITableViewController {
         let navItem = UINavigationItem(title: "About Canada");
         myNavigationbar.setItems([navItem], animated: false);
         
-        //jason parsing call
-        self.parseJSON()
+        
+        
+        //json parsing call
+       // self.parseJSON()
         
         
         
@@ -89,6 +93,7 @@ class TableViewController: UITableViewController {
         return 100
     }
     
+    // calculate line height
     func lines(label: UILabel) -> Int {
         let textSize = CGSize(width: label.frame.size.width, height: CGFloat(Float.infinity))
         let rHeight = lroundf(Float(label.sizeThatFits(textSize).height))
@@ -102,25 +107,25 @@ class TableViewController: UITableViewController {
         
         let cell = self.myTableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath) as! CustomTableCell
         
-        //cell.textLabel?.text = myTitle.object(at: indexPath.row) as! String
+        cell.cellLabelTitle.text = myTitle.object(at: indexPath.row) as? String
         
-        let rowdata :NSMutableArray = myDataArray.object(at: indexPath) as! NSMutableArray
-        
-        cell.cellLabelTitle.text = rowdata.object(at: 0) as? String
-        
-        cell.cellLabelDescription.text = rowdata.object(at: 1) as? String
+        cell.cellLabelDescription.text = myDescription.object(at: indexPath.row) as? String
         
         //let rowHeight: Int = self.lines(label: cell.cellLabelDescription)
         // cell.cellLabelDescription.numberOfLines = rowHeight
         // cell.cellLabelDescription.sizeToFit()
         
-        cell.cellImageView.downloadImageFrom(link: rowdata.object(at: 2) as! String, contentMode: UIViewContentMode.scaleAspectFit)
+        let urlimage = myImageURL.object(at: indexPath.row) as! String
+        print(urlimage)
+        
+        
+        cell.cellImageView.downloadImageFrom(link: myImageURL.object(at: indexPath.row) as! String, contentMode: UIViewContentMode.scaleAspectFit)
         //myTableView.estimatedRowHeight = 200.0
         //cell.imgWrapperHeight.frame.size.height = rowHeight
         //cell.frame.size.height = CGFloat(rowHeight * 10)
         cell.setNeedsUpdateConstraints()
         cell.updateConstraintsIfNeeded()
-        //cell.backgroundColor=UIColor.green
+        
         return cell
     }
     
@@ -157,14 +162,13 @@ class TableViewController: UITableViewController {
                 return
             }
             
-            myDataArray = json["rows"] as? [String] as! NSMutableArray
-        
+            if let array = json["rows"] as? [String] {
                 print(" containing JSON")
-        
+            }
             
             // Refreshing Tableview without Locking main thread
             DispatchQueue.main.async {
-                self.tableView.reloadData()
+                //self.tableView.reloadData()
             }
             
         }
@@ -205,13 +209,15 @@ class TableViewController: UITableViewController {
      */
     
 }
+
 // Image downloading using GCD
 extension UIImageView {
     func downloadImageFrom(link:String, contentMode: UIViewContentMode) {
         URLSession.shared.dataTask( with: NSURL(string:link)! as URL, completionHandler: {
             (data, response, error) -> Void in
+            
             DispatchQueue.main.async {
-                print(link)
+                //print(link)
                 self.contentMode =  contentMode
                 if let data = data { self.image = UIImage(data: data) }
             }
@@ -228,23 +234,21 @@ class CustomTableCell: UITableViewCell {
     
     override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        cellLabelTitle = UILabel(frame: CGRect(x: 100, y: 0, width: 200, height: 21))
+        cellLabelTitle = UILabel(frame: CGRect(x: 100, y: 0, width: 200, height: 20))
         cellLabelTitle.textAlignment = .left
         addSubview(cellLabelTitle)
         
-        cellLabelDescription = UILabel(frame: CGRect(x: 100, y: 20, width: 250, height: 31))
+        cellLabelDescription = UILabel(frame: CGRect(x: 100, y: 20, width: 220, height: 80))
         cellLabelDescription.textAlignment = .left
         cellLabelDescription.lineBreakMode = .byWordWrapping
         cellLabelDescription.numberOfLines = 20
+        cellLabelDescription.font =  UIFont.systemFont(ofSize: 12)
         addSubview(cellLabelDescription)
         
-        cellImageView = UIImageView(frame: CGRect(x: 0, y: 0, width: 60, height: 60))
+        cellImageView = UIImageView(frame: CGRect(x: 0, y: 0, width: 100, height: 100))
         cellImageView.backgroundColor = UIColor.clear
         
         addSubview(cellImageView)
-        
-        
-        
         
         contentView.backgroundColor = .white
     }
