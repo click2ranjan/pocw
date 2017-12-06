@@ -15,11 +15,9 @@ class TableViewController: UITableViewController {
     //top navigation instance
     private var myNavigationbar:UINavigationBar!
     //Mutable array for Row data
-    private var myDataArray:NSMutableArray!
-    //Dummy Data since json data is not working
-    private let myTitle: NSArray = ["Beavers","Flag","Transportation"]
-    private let myDescription: NSArray = ["Beavers are second only to humans in their ability to manipulate and change their environment. They can measure up to 1.3 metres long. A group of beavers is called a colony","","It is a well known fact that polar bears are the main mode of transportation in Canada. They consume far less gas and have the added benefit of being difficult to steal."]
-    private let myImageURL: NSArray = ["http://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/American_Beaver.jpg/220px-American_Beaver.jpg","http://images.findicons.com/files/icons/662/world_flag/128/flag_of_canada.png","http://1.bp.blogspot.com/_VZVOmYVm68Q/SMkzZzkGXKI/AAAAAAAAADQ/U89miaCkcyo/s400/the_golden_compass_still.jpg"]
+    private var myDataArray:NSArray!
+   
+    
     private let cellId = "cellId"
     
     override func viewDidLoad()
@@ -34,18 +32,17 @@ class TableViewController: UITableViewController {
         
         //table instance
         self.myTableView = UITableView(frame: CGRect(x: 0, y: 80, width: displayWidth, height: displayHeight - 80))
-        self.myTableView.dataSource = self
-        self.myTableView.delegate = self
         self.view.addSubview(myTableView)
         self.myTableView.register(CustomTableCell.self, forCellReuseIdentifier: cellId)
+        
         self.myTableView.rowHeight = UITableViewAutomaticDimension
         self.myTableView.estimatedRowHeight = UITableViewAutomaticDimension
         
         //navogation instance
         myNavigationbar  = UINavigationBar(frame: CGRect(x: 0, y: 0, width: displayWidth, height: 80))
         self.view.addSubview(myNavigationbar);
-        let navItem = UINavigationItem(title: "About Canada");
-        myNavigationbar.setItems([navItem], animated: false);
+        //let navItem = UINavigationItem(title: "About Canada");
+        //myNavigationbar.setItems([navItem], animated: false);
         
         
         
@@ -79,14 +76,14 @@ class TableViewController: UITableViewController {
         
         
     }
-    override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        
-        return 0
-    }
-    
+//    override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+//
+//        return 0
+//    }
+//
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
-        return 3
+        return self.myDataArray.count
     }
     
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -107,19 +104,43 @@ class TableViewController: UITableViewController {
         
         let cell = self.myTableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath) as! CustomTableCell
         
-        cell.cellLabelTitle.text = myTitle.object(at: indexPath.row) as? String
+        let SingleData = self.myDataArray.object(at: indexPath.row) as! NSDictionary
         
-        cell.cellLabelDescription.text = myDescription.object(at: indexPath.row) as? String
+        if (SingleData.value(forKey: "title") as? String) != nil {
+            // hey hey -- we got the `id` we needed!
+            // TODO: parse the rest of the JSON...
+            cell.cellLabelTitle.text = SingleData.value(forKey: "title") as? String
+        }
+        
+        if (SingleData.value(forKey: "description") as? String) != nil {
+            // hey hey -- we got the `id` we needed!
+            // TODO: parse the rest of the JSON...
+            cell.cellLabelDescription.text = SingleData.value(forKey: "description") as? String
+        }
+        if (SingleData.value(forKey: "imageHref") as? String) != nil {
+            // hey hey -- we got the `id` we needed!
+            // TODO: parse the rest of the JSON...
+            let imageURL = SingleData.value(forKey: "imageHref") as? String
+            
+            cell.cellImageView.downloadImageFrom(link: imageURL!, contentMode: UIViewContentMode.scaleAspectFit)
+        }
+        
+        
+        
+        
+        
+        
+        //cell.cellLabelDescription.text = myDescription.object(at: indexPath.row) as? String
         
         //let rowHeight: Int = self.lines(label: cell.cellLabelDescription)
         // cell.cellLabelDescription.numberOfLines = rowHeight
         // cell.cellLabelDescription.sizeToFit()
         
-        let urlimage = myImageURL.object(at: indexPath.row) as! String
-        print(urlimage)
+//        let urlimage = myImageURL.object(at: indexPath.row) as! String
+//        print(urlimage)
         
         
-        cell.cellImageView.downloadImageFrom(link: myImageURL.object(at: indexPath.row) as! String, contentMode: UIViewContentMode.scaleAspectFit)
+        //cell.cellImageView.downloadImageFrom(link: myImageURL.object(at: indexPath.row) as! String, contentMode: UIViewContentMode.scaleAspectFit)
         //myTableView.estimatedRowHeight = 200.0
         //cell.imgWrapperHeight.frame.size.height = rowHeight
         //cell.frame.size.height = CGFloat(rowHeight * 10)
@@ -136,45 +157,79 @@ class TableViewController: UITableViewController {
     
     func parseJSON()
     {
-        let url = URL(string: "https://dl.dropboxusercontent.com/s/2iodh4vg0eortkl/facts.json")
+        let url1 = URL(string: "https://dl.dropboxusercontent.com/s/2iodh4vg0eortkl/facts.json")
         
-        let task = URLSession.shared.dataTask(with: url!) {(data, response, error) in
-            
-            // Checkpoint for ERROR
-            guard error == nil else {
-                print("returning error")
-                return
+        if let url = url1 {
+            if let data = try? Data(contentsOf: url as URL) {
+                do {
+                    
+                    let responseStrInISOLatin = String(data: data, encoding: String.Encoding.isoLatin1)
+                    guard let modifiedDataInUTF8Format = responseStrInISOLatin?.data(using: String.Encoding.utf8) else {
+                        print("could not convert data to UTF-8 format")
+                        return
+                    }
+                    do {
+                        let responseJSONDict = try JSONSerialization.jsonObject(with: modifiedDataInUTF8Format)
+                        let ResponceDictionary = responseJSONDict as? NSDictionary
+                        
+                        let rowTitle = ResponceDictionary?.value(forKey: "title")
+                        self.myDataArray = ResponceDictionary?.value(forKey: "rows") as! NSArray
+                        self.myTableView.dataSource = self
+                        self.myTableView.delegate = self
+                        self.myTableView.reloadData()
+                        
+                        let navItem = UINavigationItem(title: rowTitle as! String);
+                        myNavigationbar.setItems([navItem], animated: false);
+                        
+                        
+                        //print(dict)
+                    } catch {
+                        print(error)
+                    }
+                    
+                    
+                    //let parsedData = try JSONSerialization.jsonObject(with: data as Data, options: .allowFragments)
+                    
+                    //Store response in NSDictionary for easy access
+                    //let dict = parsedData as? NSDictionary
+                    
+                    //let currentConditions = "\(dict!["currently"]!)"
+                    
+                    //This produces an error, Type 'Any' has no subscript members
+                    //let currentTemperatureF = ("\(dict!["currently"]!["temperature"]!!)" as NSString).doubleValue
+                    
+                    //Display all current conditions from API
+                    //print(currentConditions)
+                    
+                    //Output the current temperature in Fahrenheit
+                    //print(currentTemperatureF)
+                    
+                }
+                    //else throw an error detailing what went wrong
+                catch let error as NSError {
+                    print("Details of JSON parsing error:\n \(error)")
+                }
             }
-            
-            //Checkpoint for nil data
-            guard let content = data else {
-                print("not returning data")
-                return
-            }
-            
-            // Bad Data processing
-            var dataString = String(data: data!, encoding:.utf8)!
-            dataString = dataString.replacingOccurrences(of: "\\", with: "'")
-            let cleanData: NSData = dataString.data(using: String.Encoding.utf8)! as NSData
-            
-            guard let json = (try? JSONSerialization.jsonObject(with: content, options: JSONSerialization.ReadingOptions.mutableContainers)) as? [String: Any] else {
-                print("Not containing JSON")
-                return
-            }
-            
-            if let array = json["rows"] as? [String] {
-                print(" containing JSON")
-            }
-            
-            // Refreshing Tableview without Locking main thread
-            DispatchQueue.main.async {
-                //self.tableView.reloadData()
-            }
-            
         }
         
-        task.resume()
+    }
+   
+  override  func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         
+        let headerHeight: CGFloat
+        
+        switch section {
+            
+        case 0:
+            // first section for test - set value for height
+            headerHeight = 0
+            
+        default:
+            // other Sections - set value for height
+            headerHeight = 0
+        }
+        
+        return headerHeight
     }
     
     
