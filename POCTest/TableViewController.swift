@@ -46,6 +46,8 @@ class TableViewController: UITableViewController {
         
         
         
+        
+        
         //json parsing call
         self.parseJSON()
         
@@ -53,6 +55,8 @@ class TableViewController: UITableViewController {
         
         // Do any additional setup after loading the view.
     }
+    
+    
     
     //Dynamic Row height
     // override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -155,7 +159,7 @@ class TableViewController: UITableViewController {
         // Dispose of any resources that can be recreated.
     }
     
-    func parseJSON()
+    @objc func parseJSON()
     {
         let url1 = URL(string: "https://dl.dropboxusercontent.com/s/2iodh4vg0eortkl/facts.json")
         
@@ -180,7 +184,9 @@ class TableViewController: UITableViewController {
                         
                         let navItem = UINavigationItem(title: rowTitle as! String);
                         myNavigationbar.setItems([navItem], animated: false);
-                        
+                        let refreshItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.refresh, target: nil, action: #selector(parseJSON))
+                        navItem.rightBarButtonItem = refreshItem
+                        myNavigationbar.setItems([navItem], animated: false)
                         
                         //print(dict)
                     } catch {
