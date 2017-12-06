@@ -50,7 +50,7 @@ class TableViewController: UITableViewController {
         
         
         //json parsing call
-       // self.parseJSON()
+        self.parseJSON()
         
         
         
